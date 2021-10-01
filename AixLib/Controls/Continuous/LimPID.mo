@@ -9,6 +9,10 @@ block LimPID
   parameter Modelica.Blocks.Types.SimpleController controllerType=
          Modelica.Blocks.Types.SimpleController.PID "Type of controller";
   parameter Real k(min=0, unit="1") = 1 "Gain of controller";
+
+  parameter Real yMax_k(start=1)=1.0*yMax "Upper limit of output at P part";
+  parameter Real yMin_k=1.0*yMin "Lower limit of output at P part";
+
   parameter Modelica.SIunits.Time Ti(min=Modelica.Constants.small)=0.5
     "Time constant of Integrator block" annotation (Dialog(enable=
           controllerType == Modelica.Blocks.Types.SimpleController.PI or
@@ -87,7 +91,7 @@ block LimPID
     annotation (Placement(
         transformation(extent={{-80,-10},{-60,10}})));
   Modelica.Blocks.Math.Gain P(k=1) "Proportional term"
-    annotation (Placement(transformation(extent={{-40,40},{-20,60}})));
+    annotation (Placement(transformation(extent={{-52,40},{-32,60}})));
   Utilities.Math.IntegratorWithReset I(
     final reset=if reset == AixLib.Types.Reset.Disabled then reset else AixLib.Types.Reset.Input,
     final y_reset=y_reset,
@@ -283,6 +287,12 @@ end Limiter;
     Evaluate=true,
     HideResult=true,
     Placement(transformation(extent={{-38,-35},{-48,-25}})));
+public
+  Limiter limiterP(
+    final uMax=yMax_k/k,
+    final uMin=yMin_k/k,
+    final strict=strict) "Limiter for k part"
+    annotation (Placement(transformation(extent={{-24,44},{-12,56}})));
 initial equation
   if initType==Modelica.Blocks.Types.InitPID.InitialOutput then
      gainPID.y = y_start;
@@ -309,12 +319,10 @@ equation
           -82,6}}, color={0,0,127}));
   connect(u_s, addI.u1) annotation (Line(points={{-120,0},{-96,0},{-96,-42},{
           -82,-42}}, color={0,0,127}));
-  connect(addP.y, P.u) annotation (Line(points={{-59,50},{-42,50}}, color={0,
+  connect(addP.y, P.u) annotation (Line(points={{-59,50},{-54,50}}, color={0,
           0,127}));
   connect(addD.y, D.u)
     annotation (Line(points={{-59,0},{-42,0}}, color={0,0,127}));
-  connect(P.y, addPID.u1) annotation (Line(points={{-19,50},{-10,50},{-10,8},
-          {-2,8}}, color={0,0,127}));
   connect(D.y, addPID.u2)
     annotation (Line(points={{-19,0},{-2,0}}, color={0,0,127}));
   connect(I.y, addPID.u3) annotation (Line(points={{-9,-50},{-6,-50},{-6,-8},{-2,-8}},
@@ -358,6 +366,8 @@ equation
   connect(inputIZero.y, switchI.u1) annotation (Line(points={{-48.5,-30},{-52,-30},{-52,-46.8},{-48.8,-46.8}}, color={0,0,127}));
   connect(booleanConstant.y, switchI.u2) annotation (Line(points={{-59.7,-33},{-54,-33},{-54,-50},{-48.8,-50}}, color={255,0,255}));
   connect(trigger, switchI.u2) annotation (Line(points={{-80,-120},{-80,-88},{-54,-88},{-54,-50},{-48.8,-50}}, color={255,0,255}));
+  connect(P.y, limiterP.u) annotation (Line(points={{-31,50},{-25.2,50}}, color={0,0,127}));
+  connect(limiterP.y, addPID.u1) annotation (Line(points={{-11.4,50},{-10,50},{-10,8},{-2,8}}, color={0,0,127}));
    annotation (
 defaultComponentName="conPID",
 Documentation(info="<html>
