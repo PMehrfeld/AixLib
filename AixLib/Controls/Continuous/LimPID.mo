@@ -100,7 +100,7 @@ block LimPID
              then Modelica.Blocks.Types.Init.InitialState
              else Modelica.Blocks.Types.Init.NoInit) if
        with_I "Integral term"
-       annotation (Placement(transformation(extent={{-40,-60},{-20,-40}})));
+       annotation (Placement(transformation(extent={{-30,-60},{-10,-40}})));
 
   Modelica.Blocks.Continuous.Derivative D(
     final k=Td/unitTime,
@@ -124,6 +124,9 @@ block LimPID
     final k3=1) "Adder for the gains"
     annotation (Placement(transformation(extent={{0,-10},{20,10}})));
 
+  Modelica.Blocks.Logical.Switch switchI if with_I annotation (Placement(transformation(extent={{-48,-54},{-40,-46}})));
+protected
+  Modelica.Blocks.Sources.BooleanConstant booleanConstant(final k=false) if with_I and (reset == AixLib.Types.Reset.Disabled) annotation (Placement(transformation(extent={{-66,-36},{-60,-30}})));
 protected
   constant Modelica.SIunits.Time unitTime=1 annotation (HideResult=true);
 
@@ -144,8 +147,7 @@ protected
     annotation(Evaluate=true, HideResult=true,
                Placement(transformation(extent={{-30,20},{-20,30}})));
 
-  Modelica.Blocks.Sources.Constant Izero(final k=0) if not with_I
-    "Zero input signal"
+  Modelica.Blocks.Sources.Constant Izero(final k=0) if not with_I "Zero input signal"
     annotation(Evaluate=true, HideResult=true,
                Placement(transformation(extent={{10,-55},{0,-45}})));
 
@@ -277,6 +279,10 @@ equation
 end Limiter;
 
 
+  Modelica.Blocks.Sources.Constant inputIZero(final k=0) if with_I "Zero input signal" annotation (
+    Evaluate=true,
+    HideResult=true,
+    Placement(transformation(extent={{-38,-35},{-48,-25}})));
 initial equation
   if initType==Modelica.Blocks.Types.InitPID.InitialOutput then
      gainPID.y = y_start;
@@ -307,14 +313,12 @@ equation
           0,127}));
   connect(addD.y, D.u)
     annotation (Line(points={{-59,0},{-42,0}}, color={0,0,127}));
-  connect(addI.y, I.u) annotation (Line(points={{-59,-50},{-42,-50}}, color={
-          0,0,127}));
   connect(P.y, addPID.u1) annotation (Line(points={{-19,50},{-10,50},{-10,8},
           {-2,8}}, color={0,0,127}));
   connect(D.y, addPID.u2)
     annotation (Line(points={{-19,0},{-2,0}}, color={0,0,127}));
-  connect(I.y, addPID.u3) annotation (Line(points={{-19,-50},{-10,-50},{-10,
-          -8},{-2,-8}}, color={0,0,127}));
+  connect(I.y, addPID.u3) annotation (Line(points={{-9,-50},{-6,-50},{-6,-8},{-2,-8}},
+                        color={0,0,127}));
   connect(addPID.y, gainPID.u)
     annotation (Line(points={{21,0},{28,0}}, color={0,0,127}));
   connect(gainPID.y, addSat.u2) annotation (Line(points={{51,0},{60,0},{60,
@@ -343,12 +347,17 @@ equation
       thickness=0.5));
   connect(Dzero.y, addPID.u2) annotation (Line(points={{-19.5,25},{-14,25},{
           -14,0},{-2,0}}, color={0,0,127}));
-  connect(Izero.y, addPID.u3) annotation (Line(points={{-0.5,-50},{-10,-50},{
-          -10,-8},{-2,-8}}, color={0,0,127}));
-  connect(trigger, I.trigger) annotation (Line(points={{-80,-120},{-80,-88},{-30,
-          -88},{-30,-62}}, color={255,0,255}));
-  connect(intRes.y, I.y_reset_in) annotation (Line(points={{-59,-80},{-50,-80},{
-          -50,-58},{-42,-58}}, color={0,0,127}));
+  connect(Izero.y, addPID.u3) annotation (Line(points={{-0.5,-50},{-6,-50},{-6,-8},{-2,-8}},
+                            color={0,0,127}));
+  connect(trigger, I.trigger) annotation (Line(points={{-80,-120},{-80,-88},{-20,-88},{-20,-62}},
+                           color={255,0,255}));
+  connect(intRes.y, I.y_reset_in) annotation (Line(points={{-59,-80},{-50,-80},{-50,-58},{-32,-58}},
+                               color={0,0,127}));
+  connect(addI.y, switchI.u3) annotation (Line(points={{-59,-50},{-56,-50},{-56,-54},{-52,-54},{-52,-53.2},{-48.8,-53.2}}, color={0,0,127}));
+  connect(switchI.y, I.u) annotation (Line(points={{-39.6,-50},{-32,-50}}, color={0,0,127}));
+  connect(inputIZero.y, switchI.u1) annotation (Line(points={{-48.5,-30},{-52,-30},{-52,-46.8},{-48.8,-46.8}}, color={0,0,127}));
+  connect(booleanConstant.y, switchI.u2) annotation (Line(points={{-59.7,-33},{-54,-33},{-54,-50},{-48.8,-50}}, color={255,0,255}));
+  connect(trigger, switchI.u2) annotation (Line(points={{-80,-120},{-80,-88},{-54,-88},{-54,-50},{-48.8,-50}}, color={255,0,255}));
    annotation (
 defaultComponentName="conPID",
 Documentation(info="<html>
