@@ -192,8 +192,7 @@ protected
     annotation (Placement(transformation(extent={{70,-10},{90,10}})));
 
 
-  Modelica.Blocks.Sources.RealExpression intRes(
-    final y=y_reset_internal/k - addPID.u1 - addPID.u2) if
+  Modelica.Blocks.Sources.RealExpression intRes(final y=y_reset_internal/k) if
        reset <> AixLib.Types.Reset.Disabled
     "Signal source for integrator reset"
     annotation (Placement(transformation(extent={{-80,-90},{-60,-70}})));
